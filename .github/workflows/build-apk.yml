@@ -1,0 +1,450 @@
+```react
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  Globe, Sparkles, MessageSquare, Layers, Settings, History, Star,
+  Sliders, Smartphone, CheckCircle2, AlertCircle, Copy, Volume2,
+  ArrowLeftRight, X, Minimize2, ScanText, Search, Trash2, Sun, Moon,
+  ChevronRight, Shield, Download, Code2, GripVertical, Send, Heart,
+  MessageCircle, Share2, ExternalLink, RefreshCw, Info, Terminal,
+  Check, Eye, Zap, Menu
+} from 'lucide-react';
+
+// ============================================================================
+// DATA & CONSTANTS: 35+ World Languages with Native Scripts & Speech Codes
+// ============================================================================
+const LANGUAGES = [
+  { code: 'auto', name: 'Auto Detect', native: 'स्वतः पहचान / Auto', speechCode: 'en-US', region: 'Universal' },
+  { code: 'en', name: 'English', native: 'English', speechCode: 'en-US', region: 'Global' },
+  { code: 'gu', name: 'Gujarati', native: 'ગુજરાતી', speechCode: 'gu-IN', region: 'India' },
+  { code: 'hi', name: 'Hindi', native: 'हिन्दी', speechCode: 'hi-IN', region: 'India' },
+  { code: 'mr', name: 'Marathi', native: 'मराठी', speechCode: 'mr-IN', region: 'India' },
+  { code: 'bn', name: 'Bengali', native: 'বাংলা', speechCode: 'bn-IN', region: 'India / Bangladesh' },
+  { code: 'ta', name: 'Tamil', native: 'தமிழ்', speechCode: 'ta-IN', region: 'India / Sri Lanka' },
+  { code: 'te', name: 'Telugu', native: 'తెలుగు', speechCode: 'te-IN', region: 'India' },
+  { code: 'pa', name: 'Punjabi', native: 'ਪੰਜਾਬੀ', speechCode: 'pa-IN', region: 'India / Pakistan' },
+  { code: 'ur', name: 'Urdu', native: 'اردو', speechCode: 'ur-PK', region: 'Pakistan / India' },
+  { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ', speechCode: 'kn-IN', region: 'India' },
+  { code: 'ml', name: 'Malayalam', native: 'മലയാളം', speechCode: 'ml-IN', region: 'India' },
+  { code: 'ja', name: 'Japanese', native: '日本語', speechCode: 'ja-JP', region: 'Japan' },
+  { code: 'ko', name: 'Korean', native: '한국어', speechCode: 'ko-KR', region: 'South Korea' },
+  { code: 'zh', name: 'Chinese (Simplified)', native: '简体中文', speechCode: 'zh-CN', region: 'China' },
+  { code: 'zh-TW', name: 'Chinese (Traditional)', native: '繁體中文', speechCode: 'zh-TW', region: 'Taiwan / HK' },
+  { code: 'ar', name: 'Arabic', native: 'العربية', speechCode: 'ar-SA', region: 'Middle East' },
+  { code: 'es', name: 'Spanish', native: 'Español', speechCode: 'es-ES', region: 'Spain / LatAm' },
+  { code: 'fr', name: 'French', native: 'Français', speechCode: 'fr-FR', region: 'France' },
+  { code: 'de', name: 'German', native: 'Deutsch', speechCode: 'de-DE', region: 'Germany' },
+  { code: 'pt', name: 'Portuguese', native: 'Português', speechCode: 'pt-BR', region: 'Brazil / Portugal' },
+  { code: 'ru', name: 'Russian', native: 'Русский', speechCode: 'ru-RU', region: 'Russia' },
+  { code: 'it', name: 'Italian', native: 'Italiano', speechCode: 'it-IT', region: 'Italy' },
+  { code: 'tr', name: 'Turkish', native: 'Türkçe', speechCode: 'tr-TR', region: 'Turkey' },
+  { code: 'vi', name: 'Vietnamese', native: 'Tiếng Việt', speechCode: 'vi-VN', region: 'Vietnam' },
+  { code: 'th', name: 'Thai', native: 'ไทย', speechCode: 'th-TH', region: 'Thailand' },
+  { code: 'id', name: 'Indonesian', native: 'Bahasa Indonesia', speechCode: 'id-ID', region: 'Indonesia' },
+  { code: 'nl', name: 'Dutch', native: 'Nederlands', speechCode: 'nl-NL', region: 'Netherlands' },
+  { code: 'pl', name: 'Polish', native: 'Polski', speechCode: 'pl-PL', region: 'Poland' },
+  { code: 'sv', name: 'Swedish', native: 'Svenska', speechCode: 'sv-SE', region: 'Sweden' },
+  { code: 'el', name: 'Greek', native: 'Ελληνικά', speechCode: 'el-GR', region: 'Greece' },
+  { code: 'he', name: 'Hebrew', native: 'עברית', speechCode: 'he-IL', region: 'Israel' },
+  { code: 'fa', name: 'Persian', native: 'فارسی', speechCode: 'fa-IR', region: 'Iran' },
+  { code: 'sw', name: 'Swahili', native: 'Kiswahili', speechCode: 'sw-KE', region: 'East Africa' },
+  { code: 'uk', name: 'Ukrainian', native: 'Українська', speechCode: 'uk-UA', region: 'Ukraine' },
+];
+
+// Bubble Theme Gradients
+const BUBBLE_THEMES = [
+  { id: 'indigo-cyan', name: 'Cosmic Pulse', classes: 'from-indigo-600 via-violet-600 to-cyan-500', ring: 'ring-cyan-400/50' },
+  { id: 'emerald-teal', name: 'Emerald Neon', classes: 'from-emerald-500 via-teal-500 to-cyan-600', ring: 'ring-emerald-400/50' },
+  { id: 'rose-amber', name: 'Sunset Glow', classes: 'from-rose-500 via-pink-600 to-amber-500', ring: 'ring-rose-400/50' },
+  { id: 'obsidian-gold', name: 'Royal Gold', classes: 'from-slate-800 via-indigo-900 to-amber-500', ring: 'ring-amber-400/50' },
+];
+
+// Simulated Mobile Apps for Screen OCR Testing
+const SIMULATED_APPS = {
+  whatsapp: {
+    id: 'whatsapp',
+    name: 'WhatsApp Chat',
+    icon: '💬',
+    accent: 'bg-emerald-600',
+    sourceLang: 'en',
+    blocks: [
+      { id: 'w1', sender: 'Aarav Patel', text: 'Hey! Are we still meeting at the cafe near Hazira beach tonight?', time: '10:42 AM', isMe: false },
+      { id: 'w2', sender: 'You', text: 'Yes! I will be there by 7 PM. Should I bring my laptop?', time: '10:43 AM', isMe: true },
+      { id: 'w3', sender: 'Aarav Patel', text: 'No need, just bring your charger. How are you doing today?', time: '10:44 AM', isMe: false },
+    ]
+  },
+  japanese_news: {
+    id: 'japanese_news',
+    name: 'Tokyo Tech News',
+    icon: '🇯🇵',
+    accent: 'bg-rose-600',
+    sourceLang: 'ja',
+    blocks: [
+      { id: 'j1', tag: '速報 • テクノロジー', text: '次世代の人工知能翻訳技術がスマートフォン体験を革新します。' },
+      { id: 'j2', tag: '記事本文', text: '画面上のあらゆるテキストを瞬時に母国語へ翻訳できるフローティングアプリが世界中で注目を集めています。' },
+      { id: 'j3', tag: 'ユーザーコメント', text: '海外旅行や外国語のニュースを読むときにとても便利です！' },
+    ]
+  },
+  instagram: {
+    id: 'instagram',
+    name: 'Instagram Post',
+    icon: '📸',
+    accent: 'bg-fuchsia-600',
+    sourceLang: 'es',
+    blocks: [
+      { id: 'i1', handle: '@viajero_mundo', text: '¡Explorando las calles mágicas de Barcelona al atardecer! La arquitectura aquí es simplemente inolvidable.' },
+      { id: 'i2', handle: '@sofia.design', text: '¡Qué fotografía tan increíble! Necesito visitar España este verano.' },
+    ]
+  },
+  youtube: {
+    id: 'youtube',
+    name: 'YouTube Comments',
+    icon: '▶️',
+    accent: 'bg-red-600',
+    sourceLang: 'ko',
+    blocks: [
+      { id: 'y1', user: '@SeoulDev_KR', text: '이 튜토리얼은 정말 이해하기 쉽고 유용합니다. 공유해 주셔서 감사합니다!' },
+      { id: 'y2', user: '@Minji_Code', text: '안드로이드 오버레이 권한 설정 부분이 특히 도움이 되었어요.' },
+    ]
+  }
+};
+
+// Native Android Kotlin Reference Code for the No-PC Build Guide
+const KOTLIN_OVERLAY_SNIPPET = `// FloatingBubbleService.kt - Native Android WindowManager + ML Kit OCR
+class FloatingBubbleService : Service() {
+    private lateinit var windowManager: WindowManager
+    private lateinit var bubbleView: View
+    private lateinit var params: WindowManager.LayoutParams
+
+    override fun onCreate() {
+        super.onCreate()
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        bubbleView = LayoutInflater.from(this).inflate(R.layout.layout_floating_bubble, null)
+
+        val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            WindowManager.LayoutParams.TYPE_PHONE
+        }
+
+        params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            layoutFlag,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = 20; y = 300
+        }
+
+        windowManager.addView(bubbleView, params)
+        setupDragAndTapTouchListener()
+    }
+
+    // Trigger Google ML Kit Text Recognition on MediaProjection Bitmap
+    private fun recognizeScreenText(bitmap: Bitmap, targetLang: String) {
+        val image = InputImage.fromBitmap(bitmap, 0)
+        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        recognizer.process(image)
+            .addOnSuccessListener { visionText ->
+                translateWithGemini(visionText.text, targetLang)
+            }
+    }
+}`;
+
+// ============================================================================
+// GEMINI API TRANSLATION HELPER (With Exponential Backoff & Offline Fallback)
+// ============================================================================
+async function translateWithGeminiAPI({ text, sourceLang, targetLang }) {
+  if (!text || !text.trim()) {
+    return { translatedText: '', detectedLang: sourceLang === 'auto' ? 'en' : sourceLang };
+  }
+
+  const targetLangObj = LANGUAGES.find(l => l.code === targetLang) || LANGUAGES[2]; // default Gujarati
+  const sourceLangObj = LANGUAGES.find(l => l.code === sourceLang);
+
+  // Instant built-in fast cache for common phrases so zero latency on standard demos
+  const normalized = text.trim().toLowerCase();
+  if (targetLang === 'gu') {
+    if (normalized === 'hi' || normalized === 'hi!') return { translatedText: 'હાય', detectedLang: 'en' };
+    if (normalized === 'hello') return { translatedText: 'નમસ્તે', detectedLang: 'en' };
+    if (normalized === 'how are you?' || normalized === 'how are you') return { translatedText: 'તમે કેમ છો?', detectedLang: 'en' };
+  }
+
+  const apiKey = ""; // Runtime-provided Gemini API key
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+  const prompt = `Translate the following text into ${targetLangObj.name} (${targetLangObj.native}).
+${sourceLang !== 'auto' && sourceLangObj ? `The source language is ${sourceLangObj.name}.` : 'Automatically detect the source language.'}
+Return ONLY a valid JSON object with two keys:
+- "translatedText": the accurate, natural translation in ${targetLangObj.name} using its native script.
+- "detectedLangCode": the 2-letter ISO language code of the detected source language (e.g., "en", "ja", "es", "ko", "hi", "gu").
+
+Text to translate:
+"""${text}"""`;
+
+  const payload = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "OBJECT",
+        properties: {
+          translatedText: { type: "STRING" },
+          detectedLangCode: { type: "STRING" }
+        },
+        required: ["translatedText", "detectedLangCode"]
+      }
+    }
+  };
+
+  let delay = 1000;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawJson) {
+        const parsed = JSON.parse(rawJson);
+        return {
+          translatedText: parsed.translatedText || '',
+          detectedLang: parsed.detectedLangCode || (sourceLang === 'auto' ? 'en' : sourceLang)
+        };
+      }
+    } catch (err) {
+      if (attempt === 2) {
+        // Graceful fallback if offline or API rate-limited
+        return {
+          translatedText: `[${targetLangObj.native}] ${text}`,
+          detectedLang: sourceLang === 'auto' ? 'en' : sourceLang
+        };
+      }
+      await new Promise(res => setTimeout(res, delay));
+      delay *= 2;
+    }
+  }
+  return { translatedText: text, detectedLang: 'en' };
+}
+
+// ============================================================================
+// MAIN APPLICATION COMPONENT
+// ============================================================================
+export default function App() {
+  // Navigation & App State
+  const [activeScreen, setActiveScreen] = useState('dashboard'); // dashboard, bubble_settings, translator, screen_sim, languages, history, favorites, settings
+  const [darkMode, setDarkMode] = useState(true);
+  const [showBuildGuide, setShowBuildGuide] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  // Android Permissions & Floating Bubble State
+  const [overlayPermission, setOverlayPermission] = useState(true);
+  const [screenCapturePermission, setScreenCapturePermission] = useState(true);
+  const [bubbleEnabled, setBubbleEnabled] = useState(true);
+  const [bubbleExpanded, setBubbleExpanded] = useState(false);
+
+  // Bubble Appearance Settings
+  const [bubbleSize, setBubbleSize] = useState(54); // px
+  const [bubbleOpacity, setBubbleOpacity] = useState(95); // %
+  const [edgeSnap, setEdgeSnap] = useState(true);
+  const [bubbleTheme, setBubbleTheme] = useState(BUBBLE_THEMES[0]);
+
+  // Bubble Drag Position (Relative to phone screen container)
+  const phoneScreenRef = useRef(null);
+  const [bubblePos, setBubblePos] = useState({ x: 285, y: 240 });
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0, moved: false });
+
+  // Translation Engine State
+  const [sourceLang, setSourceLang] = useState('auto');
+  const [targetLang, setTargetLang] = useState('gu'); // Default Gujarati as in user prompt
+  const [detectedLangCode, setDetectedLangCode] = useState('en');
+  const [inputText, setInputText] = useState('How are you?');
+  const [translatedText, setTranslatedText] = useState('તમે કેમ છો?');
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  // Floating Mini-Window Translation State
+  const [miniInputText, setMiniInputText] = useState('Hi');
+  const [miniTranslatedText, setMiniTranslatedText] = useState('હાય');
+  const [isMiniTranslating, setIsMiniTranslating] = useState(false);
+
+  // Screen OCR Simulation State
+  const [activeSimApp, setActiveSimApp] = useState('whatsapp');
+  const [isScanningScreen, setIsScanningScreen] = useState(false);
+  const [screenOcrResults, setScreenOcrResults] = useState(null); // { appId, items: [{ id, original, translated }] }
+
+  // History, Favorites & Settings
+  const [historyList, setHistoryList] = useState([
+    { id: 'h1', sourceText: 'How are you?', translatedText: 'તમે કેમ છો?', sourceLang: 'en', targetLang: 'gu', timestamp: 'Just now', favorite: true },
+    { id: 'h2', sourceText: 'Hi', translatedText: 'હાય', sourceLang: 'en', targetLang: 'gu', timestamp: '2 mins ago', favorite: false },
+    { id: 'h3', sourceText: 'おはようございます', translatedText: 'સુપ્રભાત (Good Morning)', sourceLang: 'ja', targetLang: 'gu', timestamp: '15 mins ago', favorite: true },
+  ]);
+  const [languageSearch, setLanguageSearch] = useState('');
+  const [historySearch, setHistorySearch] = useState('');
+  const [ttsSpeed, setTtsSpeed] = useState(1.0);
+  const [autoDetectEnabled, setAutoDetectEnabled] = useState(true);
+
+  // Toast helper
+  const triggerToast = useCallback((msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(prev => (prev === msg ? null : prev));
+    }, 2600);
+  }, []);
+
+  // Copy helper
+  const handleCopy = (text) => {
+    if (!text) return;
+    navigator.clipboard?.writeText(text);
+    triggerToast('Copied to clipboard!');
+  };
+
+  // Text-to-Speech helper
+  const handleSpeak = (text, langCode) => {
+    if (!text || !('speechSynthesis' in window)) {
+      triggerToast('TTS audio triggered');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const langObj = LANGUAGES.find(l => l.code === langCode);
+    if (langObj) utterance.lang = langObj.speechCode;
+    utterance.rate = ttsSpeed;
+    window.speechSynthesis.speak(utterance);
+    triggerToast(`Speaking (${langObj?.name || langCode})...`);
+  };
+
+  // Save to History
+  const addToHistory = useCallback((src, trans, sLang, tLang) => {
+    if (!src.trim() || !trans.trim()) return;
+    setHistoryList(prev => {
+      // Avoid duplicate consecutive entries
+      if (prev.length > 0 && prev[0].sourceText === src && prev[0].targetLang === tLang) {
+        return prev;
+      }
+      const newItem = {
+        id: Date.now().toString(),
+        sourceText: src,
+        translatedText: trans,
+        sourceLang: sLang,
+        targetLang: tLang,
+        timestamp: 'Just now',
+        favorite: false
+      };
+      return [newItem, ...prev.slice(0, 49)];
+    });
+  }, []);
+
+  // Toggle Favorite
+  const toggleFavorite = (id) => {
+    setHistoryList(prev => prev.map(item =>
+      item.id === id ? { ...item, favorite: !item.favorite } : item
+    ));
+  };
+
+  // Debounced Real-time Translation for Full Text Translator
+  useEffect(() => {
+    if (!inputText.trim()) {
+      setTranslatedText('');
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsTranslating(true);
+      const res = await translateWithGeminiAPI({
+        text: inputText,
+        sourceLang: autoDetectEnabled ? sourceLang : (sourceLang === 'auto' ? 'en' : sourceLang),
+        targetLang
+      });
+      setTranslatedText(res.translatedText);
+      setDetectedLangCode(res.detectedLang);
+      setIsTranslating(false);
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [inputText, sourceLang, targetLang, autoDetectEnabled]);
+
+  // Debounced Real-time Translation for Floating Bubble Window
+  useEffect(() => {
+    if (!miniInputText.trim()) {
+      setMiniTranslatedText('');
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsMiniTranslating(true);
+      const res = await translateWithGeminiAPI({
+        text: miniInputText,
+        sourceLang: 'auto',
+        targetLang
+      });
+      setMiniTranslatedText(res.translatedText);
+      setDetectedLangCode(res.detectedLang);
+      setIsMiniTranslating(false);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [miniInputText, targetLang]);
+
+  // Swap Languages
+  const handleSwapLanguages = () => {
+    const effectiveSource = sourceLang === 'auto' ? detectedLangCode : sourceLang;
+    if (effectiveSource === targetLang) return;
+    setSourceLang(targetLang);
+    setTargetLang(effectiveSource);
+    setInputText(translatedText);
+    setTranslatedText(inputText);
+    triggerToast('Languages swapped');
+  };
+
+  // ============================================================================
+  // DRAGGABLE FLOATING BUBBLE LOGIC (Mouse + Touch)
+  // ============================================================================
+  const handlePointerDown = (e) => {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    isDraggingRef.current = true;
+    dragStartRef.current = {
+      startX: clientX,
+      startY: clientY,
+      initialX: bubblePos.x,
+      initialY: bubblePos.y,
+      moved: false
+    };
+  };
+
+  useEffect(() => {
+    const handlePointerMove = (e) => {
+      if (!isDraggingRef.current || !phoneScreenRef.current) return;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const dx = clientX - dragStartRef.current.startX;
+      const dy = clientY - dragStartRef.current.startY;
+
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        dragStartRef.current.moved = true;
+      }
+
+      const bounds = phoneScreenRef.current.getBoundingClientRect();
+      const maxX = bounds.width - bubbleSize - 8;
+      const maxY = bounds.height - bubbleSize - 68; // keep above bottom nav
+
+      const nextX = Math.max(8, Math.min(maxX, dragStartRef.current.initialX + dx));
+      const nextY = Math.max(36, Math.min(maxY, dragStartRef.current.initialY + dy));
+
+      setBubblePos({ x: nextX, y: nextY });
+    };
+
+    const handlePointerUp = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+
+      if (!dragStartRef.current.moved) {
+        // It was a tap! Toggle floating window
+        setBubbleExpanded(prev => !prev);
+      } else if (edgeSnap && phoneScreenRef.current) {
+        // Snap smoothly to left or right edge
+        
